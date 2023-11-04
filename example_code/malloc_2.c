@@ -13,10 +13,11 @@ void *malloc(size_t size)
 {
     if (original_malloc == NULL)
     {
+        //finds the address of the next occurence of "malloc"
         original_malloc = (void*(*)(size_t))dlsym(RTLD_NEXT, "malloc");
     }
 
-    fprintf(stderr, "[+] Hooked libc function call: malloc(%ld)\n", size);
+    fprintf(stderr, "[2] Hooked libc function call: malloc(%ld)\n", size);
 
     //perform the functionality of the real malloc function
     void *allocation = NULL;
