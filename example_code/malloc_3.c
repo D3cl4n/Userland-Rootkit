@@ -47,6 +47,7 @@ void *malloc(size_t size)
 //function pointer to the original readdir
 struct dirent* (*original_readdir)(DIR *) = NULL;
 
+//DIR* is a stream of the files as entries from the directory 
 struct dirent *readdir(DIR *dirp)
 {
     if (original_readdir == NULL)
